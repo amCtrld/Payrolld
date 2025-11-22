@@ -29,13 +29,20 @@ interface Payslip {
 export default function PayslipsPage() {
   const [payslips, setPayslips] = useState<Payslip[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
   const router = useRouter()
 
   useEffect(() => {
     const token = localStorage.getItem("token")
+    const userStr = localStorage.getItem("user")
+    
     if (!token) {
       router.push("/login")
       return
+    }
+
+    if (userStr) {
+      setUser(JSON.parse(userStr))
     }
 
     fetchPayslips(token)
@@ -111,7 +118,9 @@ export default function PayslipsPage() {
       <DashboardNav />
       <main className="flex-1">
         <div className="container mx-auto p-8">
-          <h1 className="text-3xl font-bold mb-8">Payslips</h1>
+          <h1 className="text-3xl font-bold mb-8">
+            {user?.role === 'employee' ? 'My Payslips' : 'Payslips'}
+          </h1>
 
           <div className="space-y-4">
             {payslips.length === 0 ? (

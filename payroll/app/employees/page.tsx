@@ -30,13 +30,25 @@ export default function EmployeesPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token")
+    const userStr = localStorage.getItem("user")
+    
     if (!token) {
       router.push("/login")
       return
     }
 
+    if (userStr) {
+      const userData = JSON.parse(userStr)
+      // Check if user has permission to view employees
+      if (userData.role !== 'admin') {
+        toast.error("Access denied: Admin access required")
+        router.push("/dashboard")
+        return
+      }
+    }
+
     fetchEmployees(token)
-  }, [router, search])
+  }, [router])
 
   const fetchEmployees = async (token: string) => {
     try {

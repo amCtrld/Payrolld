@@ -13,7 +13,7 @@ def get_summary():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_view_analytics():
         return {'error': 'Unauthorized'}, 401
     
     year = request.args.get('year', type=int)
@@ -45,7 +45,7 @@ def get_department_distribution():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_view_analytics():
         return {'error': 'Unauthorized'}, 401
     
     year = request.args.get('year', type=int)
@@ -83,7 +83,7 @@ def get_monthly_trend():
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_view_analytics():
         return {'error': 'Unauthorized'}, 401
     
     results = db.session.query(

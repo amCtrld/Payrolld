@@ -14,11 +14,21 @@ export function middleware(request: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", request.url))
     }
+
+    // Role-based access control would need user data
+    // For now, we'll handle this in individual components
+    // Advanced: Could decode JWT token here to check roles
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/employees/:path*", "/payroll/:path*", "/payslips/:path*", "/analytics/:path*"],
+  matcher: [
+    "/dashboard/:path*", 
+    "/employees/:path*", 
+    "/payroll/:path*", 
+    "/payslips/:path*", 
+    "/analytics/:path*"
+  ],
 }

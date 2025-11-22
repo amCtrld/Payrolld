@@ -10,6 +10,11 @@ employee_bp = Blueprint('employees', __name__, url_prefix='/api/employees')
 @jwt_required()
 def get_employees():
     """Get all employees with pagination and search"""
+    current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    
+    if not user or not user.can_manage_employees():
+        return {'error': 'Unauthorized'}, 401
     try:
         current_user_id = int(get_jwt_identity())  # Convert back to int
         print(f"DEBUG GET: Current user ID: {current_user_id}")  # Debug

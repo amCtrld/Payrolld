@@ -50,31 +50,41 @@ export default function DashboardPage() {
   const fetchStats = async (token: string) => {
     try {
       console.log("Fetching dashboard stats...") // Debug
-      const response = await fetch("/api/analytics/summary", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      
+      // Only fetch analytics for admin users
+      if (user?.role === 'admin') {
+        const response = await fetch("/api/analytics/summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
-      if (response.status === 401) {
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
-        window.location.href = "/login"
-        return
+        if (response.status === 401) {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          window.location.href = "/login"
+          return
+        }
+
+        if (response.ok) {
+          const data = await response.json()
+          setStats({
+            total_employees: data.total_employees || 0,
+            total_payroll: data.total_payroll || 0,
+            total_payslips: data.total_payslips || 0,
+            average_salary: data.average_salary || 0
+          })
+          return
+        }
       }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch dashboard stats")
-      }
-
-      const data = await response.json()
+      
+      // For non-admin users, set minimal stats
       setStats({
-        total_employees: data.total_employees || 0,
-        total_payroll: data.total_payroll || 0,
-        total_payslips: data.total_payslips || 0,
-        average_salary: data.average_salary || 0
+        total_employees: 0,
+        total_payroll: 0,
+        total_payslips: 0,
+        average_salary: 0
       })
     } catch (error) {
       console.error("Failed to load dashboard:", error)
-      // Fallback to zeros if API fails
       setStats({
         total_employees: 0,
         total_payroll: 0,
@@ -125,57 +135,83 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Employees</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.total_employees || 0}</div>
-              </CardContent>
-            </Card>
+          {user?.role === 'admin' && (
+            <div className="grid md:grid-cols-4 gap-4 mb-8">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Employees</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.total_employees || 0}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Payroll</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats?.total_payroll?.toFixed(2) || "0.00"}</div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Payroll</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${stats?.total_payroll?.toFixed(2) || "0.00"}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Payslips Generated</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats?.total_payslips || 0}</div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Payslips Generated</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.total_payslips || 0}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Average Salary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats?.average_salary?.toFixed(2) || "0.00"}</div>
-              </CardContent>
-            </Card>
-          </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">Average Salary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${stats?.average_salary?.toFixed(2) || "0.00"}</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <Card>
             <CardHeader>
-              <CardTitle>🎉 Welcome to Payroll Management System</CardTitle>
-              <CardDescription>Manage employees, process payroll, and generate payslips efficiently.</CardDescription>
+              <CardTitle>{user?.role === 'admin' ? '🎉 Admin Dashboard' : user?.role === 'hr' ? '🏢 HR Dashboard' : '👋 Employee Portal'}</CardTitle>
+              <CardDescription>
+                {user?.role === 'admin' ? 'Complete control over the payroll management system.' : 
+                 user?.role === 'hr' ? 'Manage payroll operations and employee compensation.' : 
+                 'Access your personal payroll information.'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">✅ Authentication successful! You are now logged in.</p>
               <p className="text-gray-600 mb-4">Use the navigation menu to:</p>
               <ul className="list-disc list-inside text-gray-600 space-y-2">
-                <li>View and manage employee information</li>
-                <li>Process monthly payroll</li>
-                <li>View and download payslips</li>
-                <li>Analyze payroll analytics and reports</li>
+                {user?.role === 'admin' && (
+                  <>
+                    <li>Manage employee information and profiles</li>
+                    <li>Process monthly payroll for all employees</li>
+                    <li>View and download all payslips</li>
+                    <li>Access comprehensive analytics and reports</li>
+                  </>
+                )}
+                {user?.role === 'hr' && (
+                  <>
+                    <li>Process monthly payroll for all employees</li>
+                    <li>Review and approve payroll runs</li>
+                    <li>Generate and manage payslips</li>
+                    <li>Monitor payroll processing status</li>
+                  </>
+                )}
+                {user?.role === 'employee' && (
+                  <>
+                    <li>View your monthly payslips</li>
+                    <li>Download payslip PDFs</li>
+                    <li>Track payment history</li>
+                    <li>View salary details and deductions</li>
+                  </>
+                )}
               </ul>
             </CardContent>
           </Card>

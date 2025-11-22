@@ -37,6 +37,9 @@ export default function LoginPage() {
       // Store in localStorage for client-side access
       localStorage.setItem("token", data.access_token)
       localStorage.setItem("user", JSON.stringify(data.user))
+      if (data.employee) {
+        localStorage.setItem("employee", JSON.stringify(data.employee))
+      }
       
       // Also store token in cookies for middleware
       document.cookie = `token=${data.access_token}; path=/; max-age=3600; SameSite=Strict`

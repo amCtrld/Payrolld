@@ -39,9 +39,21 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token")
+    const userStr = localStorage.getItem("user")
+    
     if (!token) {
       router.push("/login")
       return
+    }
+
+    if (userStr) {
+      const userData = JSON.parse(userStr)
+      // Check if user has permission to view analytics
+      if (userData.role !== 'admin') {
+        toast.error("Access denied: Admin access required")
+        router.push("/dashboard")
+        return
+      }
     }
 
     fetchAnalytics(token)

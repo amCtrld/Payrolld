@@ -44,7 +44,7 @@ def get_employees_for_payroll():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_process_payroll():
         return {'error': 'Unauthorized'}, 401
     
     employees = Employee.query.filter_by(is_active=True).order_by(Employee.name).all()
@@ -70,7 +70,7 @@ def create_payroll_run():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_process_payroll():
         return {'error': 'Unauthorized'}, 401
     
     data = request.get_json()
@@ -130,7 +130,7 @@ def create_bulk_payroll_runs():
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_process_payroll():
         return {'error': 'Unauthorized'}, 401
     
     data = request.get_json()
@@ -209,7 +209,7 @@ def process_payroll(payroll_run_id):
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_process_payroll():
         return {'error': 'Unauthorized'}, 401
     
     payroll_run = PayrollRun.query.get(payroll_run_id)
@@ -335,7 +335,7 @@ def update_payroll_run(payroll_run_id):
     current_user_id = int(get_jwt_identity())
     user = User.query.get(current_user_id)
     
-    if not user or user.role not in ['admin', 'finance']:
+    if not user or not user.can_process_payroll():
         return {'error': 'Unauthorized'}, 401
     
     payroll_run = PayrollRun.query.get(payroll_run_id)

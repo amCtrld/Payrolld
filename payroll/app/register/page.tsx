@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [role, setRole] = useState("admin") // Default to admin for first user
+  const [employeeId, setEmployeeId] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -34,10 +35,21 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      const body: any = { email, password, role }
+      
+      // Add employee_id for employee/hr registration
+      if (role === 'employee' || role === 'hr') {
+        if (!employeeId) {
+          toast.error("Employee ID is required for employee/HR registration")
+          return
+        }
+        body.employee_id = employeeId
+      }
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify(body),
       })
 
       const data = await response.json()
@@ -90,10 +102,32 @@ export default function RegisterPage() {
                 required
               >
                 <option value="admin">Admin</option>
-                <option value="finance">Finance</option>
+                <option value="hr">HR</option>
                 <option value="employee">Employee</option>
               </select>
             </div>
+
+            {(role === 'employee' || role === 'hr') && (
+              <div className="space-y-2">
+                <label htmlFor="employeeId" className="text-sm font-medium">
+                  Employee ID
+                </label>
+                <Input
+                  id="employeeId"
+                  type="text"
+                  placeholder="e.g., EMP001, HR0125"
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  {role === 'hr' ? 
+                    'Only employees in Human Resource department can register as HR' : 
+                    'Enter your employee ID as provided by your organization'
+                  }
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium">
